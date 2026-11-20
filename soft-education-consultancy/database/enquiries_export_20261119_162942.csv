@@ -1,0 +1,5 @@
+lead_id,name,phone,email,enquiry_type,interested_course,preferred_location,message,source_page,status,priority,notes,created_at
+SOFT-2026-104,Sneha Kumari,+91 99345 67890,sneha.k@example.com,Course Counselling,MCA vs MBA,Patna / Kolkata,Confused whether to pursue MCA or MBA after BCA.,contact.html,Enrolled,Medium,Joined counselling session with Ashutosh Sir,2026-11-19 10:51:52
+SOFT-2026-103,Aman Verma,+91 97234 56789,aman.verma@example.com,Job Assistance,Freshers IT Opportunities,Bangalore / Remote,Graduated BCA in 2025. Needs resume guidance and entry-level software job.,careers.html,In Discussion,High,Resume review in progress,2026-11-19 10:51:52
+SOFT-2026-102,Priya Patel,+91 98123 45678,priya.p@example.com,College Admissions,MBA,Pune / Mumbai,Completed B.Com with 68%. Looking for MBA in Marketing & Finance.,index.html,Contacted,Medium,Sent fee structure and brochure via WhatsApp,2026-11-19 10:51:52
+SOFT-2026-101,Rahul Sharma,+91 98765 43210,rahul.s@example.com,College Admissions,BCA,Delhi NCR / Bangalore,Interested in top BCA colleges with placement support.,admissions.html,New,High,Scheduled initial callback,2026-11-19 10:51:52

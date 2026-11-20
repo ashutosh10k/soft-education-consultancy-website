@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database & Admin Portal | SOFT Education Consultancy</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .admin-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+      box-shadow: var(--shadow-sm);
+    }
+    .admin-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .admin-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #ffffff;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      margin-bottom: 22px;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1px solid #d3dbe6;
+      border-radius: 6px;
+      font-size: 13.5px;
+    }
+    .filter-select {
+      padding: 10px 14px;
+      border: 1px solid #d3dbe6;
+      border-radius: 6px;
+      font-size: 13.5px;
+      background: #fff;
+    }
+    .status-select {
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 24, 50, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 560px;
+      width: 100%;
+      padding: 30px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--paper-soft);
+      border: 1px solid var(--line);
+      color: var(--navy);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-action:hover {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+    }
+    .btn-delete:hover {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #b91c1c;
+    }
+    .login-container {
+      max-width: 420px;
+      margin: 80px auto;
+      padding: 36px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid #a7f3d0;
+    }
+  </style>
+</head>
+<body style="background:#f4f6fa;">
+
+  <!-- Login Gate -->
+  <div id="loginGate" class="login-container">
+    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+      <img src="assets/soft-education-consultancy-logo.jpeg" alt="Logo" style="height:60px; max-width:200px; object-fit:contain;">
+    </div>
+    <h2>Admin Database Login</h2>
+    <p style="font-size:13px; color:var(--muted);">Access SOFT Education Consultancy enquiry records and lead database.</p>
+    <form id="adminLoginForm">
+      <div class="field" style="margin-bottom:18px; text-align:left;">
+        <label>Admin Security PIN / Password</label>
+        <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: softadmin2026)" required>
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%;">Unlock Database ↗</button>
+      <div id="loginError" style="color:#dc2626; font-size:12px; margin-top:10px; display:none;">Incorrect PIN. Please try again.</div>
+    </form>
+    <div style="margin-top:20px; font-size:12px; color:#64748b;">
+      <a href="index.html">← Return to Website</a>
+    </div>
+  </div>
+
+  <!-- Authenticated Portal View -->
+  <div id="adminPortal" style="display:none;">
+    <header class="admin-header">
+      <div class="container admin-bar">
+        <a class="brand" href="index.html">
+          <img src="assets/soft-education-consultancy-logo.jpeg" alt="Logo" class="brand-logo-img">
+          <div class="brand-text">
+            <strong>SOFT Education</strong>
+            <small>Consultancy Database Portal</small>
+          </div>
+        </a>
+        <div class="admin-actions">
+          <span class="sync-status">● Database Online (SQLite & IndexedDB)</span>
+          <button class="btn btn-sm btn-primary" onclick="openManualLeadModal()">+ Add New Lead</button>
+          <button class="btn btn-sm btn-dark" onclick="SoftDB.exportToCSV()">📥 Export Excel / CSV</button>
+          <button class="btn btn-sm btn-outline" style="color:var(--navy); border-color:var(--line);" onclick="logoutAdmin()">Logout</button>
+          <a class="btn btn-sm btn-outline" style="color:var(--navy); border-color:var(--line);" href="index.html" target="_blank">View Site ↗</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding-top:32px; padding-bottom:50px;">
+      <!-- Stats Overview -->
+      <div class="stats-grid-admin">
+        <div class="stat-card-admin">
+          <div class="label">Total Inquiries</div>
+          <div class="number" id="statTotal">0</div>
+          <div style="font-size:11.5px; color:#64748b;">Stored in database</div>
+        </div>
+        <div class="stat-card-admin">
+          <div class="label">Admissions Leads</div>
+          <div class="number" id="statAdmissions" style="color:#0284c7;">0</div>
+          <div style="font-size:11.5px; color:#64748b;">College applicants</div>
+        </div>
+        <div class="stat-card-admin">
+          <div class="label">Career & Job Leads</div>
+          <div class="number" id="statCareers" style="color:#d97706;">0</div>
+          <div style="font-size:11.5px; color:#64748b;">Job seekers & guidance</div>
+        </div>
+        <div class="stat-card-admin">
+          <div class="label">New / Pending</div>
+          <div class="number" id="statNew" style="color:#16a34a;">0</div>
+          <div style="font-size:11.5px; color:#64748b;">Needs follow-up</div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div class="filter-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by student name, phone, email, course or Lead ID...">
+        <select id="typeFilter" class="filter-select">
+          <option value="all">All Enquiry Types</option>
+          <option value="admissions">College Admissions</option>
+          <option value="job">Job Assistance & Career</option>
+          <option value="course">Course Guidance</option>
+          <option value="contact">General Contact</option>
+        </select>
+        <select id="statusFilter" class="filter-select">
+          <option value="all">All Statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="in discussion">In Discussion</option>
+          <option value="enrolled">Enrolled / Placed</option>
+          <option value="closed">Closed</option>
+        </select>
+        <button class="btn btn-sm btn-dark" onclick="renderTable()">Filter</button>
+        <button class="btn btn-sm btn-outline" style="color:var(--navy); border-color:var(--line);" onclick="resetFilters()">Reset</button>
+      </div>
+
+      <!-- Data Table -->
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Lead Ref</th>
+              <th>Date</th>
+              <th>Student Name</th>
+              <th>Contact</th>
+              <th>Enquiry Type / Course</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="enquiriesTableBody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Loading enquiries from database...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Lead Detail & Note Modal -->
+  <div id="leadModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 id="modalLeadId" style="margin:0;">Lead Details</h3>
+        <button class="btn-action" onclick="closeModal('leadModal')">✕</button>
+      </div>
+      <div id="modalLeadBody" style="font-size:14px; line-height:1.7;"></div>
+      <hr style="margin:20px 0; border:none; border-top:1px solid var(--line);">
+      <div class="field" style="margin-bottom:16px;">
+        <label>Staff Follow-up Notes:</label>
+        <textarea id="modalStaffNotes" rows="3" placeholder="Add conversation details, agreed course, call summary..."></textarea>
+      </div>
+      <div class="field" style="margin-bottom:20px;">
+        <label>Update Status:</label>
+        <select id="modalStatusSelect" class="filter-select" style="width:100%;">
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="In Discussion">In Discussion</option>
+          <option value="Enrolled">Enrolled / Placed</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-outline" style="color:var(--navy); border-color:var(--line);" onclick="closeModal('leadModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveLeadNotesFromModal()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Lead Entry Modal -->
+  <div id="manualLeadModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0;">Add Walk-In / Phone Lead</h3>
+        <button class="btn-action" onclick="closeModal('manualLeadModal')">✕</button>
+      </div>
+      <form id="manualLeadForm">
+        <div class="form-grid">
+          <div class="field">
+            <label>Student / Candidate Name *</label>
+            <input name="name" required placeholder="Full Name">
+          </div>
+          <div class="field">
+            <label>Phone Number *</label>
+            <input name="phone" required placeholder="+91 98765 43210">
+          </div>
+          <div class="field full">
+            <label>Email Address</label>
+            <input name="email" type="email" placeholder="student@example.com">
+          </div>
+          <div class="field">
+            <label>Enquiry Type *</label>
+            <select name="enquiry_type" required>
+              <option value="College Admissions">College Admissions</option>
+              <option value="Job Assistance">Job Assistance</option>
+              <option value="Course Counselling">Course Counselling</option>
+              <option value="General Guidance">General Guidance</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Course / Role</label>
+            <input name="course" placeholder="e.g. B.Sc Nursing, GNM, BLIS, PGDCA, BCA, MBA">
+          </div>
+          <div class="field full">
+            <label>Preferred City / Location</label>
+            <input name="location" placeholder="e.g. Patna, Delhi, Bangalore">
+          </div>
+          <div class="field full">
+            <label>Staff Notes & Query</label>
+            <textarea name="message" placeholder="Details of walk-in conversation..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-outline" style="color:var(--navy); border-color:var(--line);" onclick="closeModal('manualLeadModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Database</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/database.js"></script>
+  <script>
+    let currentSelectedLead = null;
+
+    // Authentication Check
+    function checkAuth() {
+      const isAuth = sessionStorage.getItem('soft_admin_authenticated');
+      if (isAuth === 'true') {
+        document.getElementById('loginGate').style.display = 'none';
+        document.getElementById('adminPortal').style.display = 'block';
+        loadDashboard();
+      } else {
+        document.getElementById('loginGate').style.display = 'block';
+        document.getElementById('adminPortal').style.display = 'none';
+      }
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pin = document.getElementById('adminPinInput').value;
+      if (pin === 'softadmin2026' || pin === '91176') {
+        sessionStorage.setItem('soft_admin_authenticated', 'true');
+        checkAuth();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('soft_admin_authenticated');
+      checkAuth();
+    }
+
+    async function loadDashboard() {
+      await updateStats();
+      await renderTable();
+    }
+
+    async function updateStats() {
+      if (!window.SoftDB) return;
+      const stats = await window.SoftDB.getStats();
+      document.getElementById('statTotal').textContent = stats.total;
+      document.getElementById('statAdmissions').textContent = stats.admissionsCount;
+      document.getElementById('statCareers').textContent = stats.careersCount;
+      document.getElementById('statNew').textContent = stats.newCount;
+    }
+
+    async function renderTable() {
+      const search = document.getElementById('searchInput').value.trim();
+      const type = document.getElementById('typeFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const list = await window.SoftDB.getAllEnquiries({ search, type, status });
+      const tbody = document.getElementById('enquiriesTableBody');
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--muted);">No matching enquiries found in database.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => {
+        const cleanPhone = (item.phone || '').replace(/[^0-9]/g, '');
+        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : 'Recent';
+
+        let badgeClass = 'badge-new';
+        const st = (item.status || 'New').toLowerCase();
+        if (st === 'contacted') badgeClass = 'badge-contacted';
+        else if (st === 'in discussion') badgeClass = 'badge-discussion';
+        else if (st === 'enrolled') badgeClass = 'badge-enrolled';
+        else if (st === 'closed') badgeClass = 'badge-closed';
+
+        return `
+          <tr>
+            <td><strong>${item.id}</strong><br><small style="color:#64748b">${item.source_page || 'Website'}</small></td>
+            <td>${dateStr}</td>
+            <td><strong>${item.name}</strong><br><span style="color:#64748b; font-size:12px;">${item.email || 'No email'}</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <a href="tel:${item.phone}" title="Call ${item.phone}" class="btn-action" style="color:#0284c7;">📞</a>
+                <a href="https://wa.me/${cleanPhone}" target="_blank" title="WhatsApp Chat" class="btn-action" style="color:#16a34a;">💬</a>
+                <span>${item.phone}</span>
+              </div>
+            </td>
+            <td>
+              <span class="admin-badge ${badgeClass}" style="margin-bottom:4px;">${item.enquiry_type}</span><br>
+              <strong style="color:var(--navy); font-size:13px;">${item.interested_course || 'General'}</strong>
+            </td>
+            <td>
+              <select class="status-select" onchange="changeStatus('${item.id}', this.value)">
+                <option value="New" ${item.status === 'New' ? 'selected' : ''}>New</option>
+                <option value="Contacted" ${item.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                <option value="In Discussion" ${item.status === 'In Discussion' ? 'selected' : ''}>In Discussion</option>
+                <option value="Enrolled" ${item.status === 'Enrolled' ? 'selected' : ''}>Enrolled / Placed</option>
+                <option value="Closed" ${item.status === 'Closed' ? 'selected' : ''}>Closed</option>
+              </select>
+            </td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-action" onclick="viewLeadDetails('${item.id}')" title="View & Edit Notes">👁️</button>
+                <button class="btn-action btn-delete" onclick="deleteLead('${item.id}')" title="Delete">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function changeStatus(id, newStatus) {
+      await window.SoftDB.updateStatus(id, newStatus);
+      await updateStats();
+    }
+
+    async function viewLeadDetails(id) {
+      const item = await window.SoftDB.getEnquiry(id);
+      if (!item) return;
+
+      currentSelectedLead = item;
+      document.getElementById('modalLeadId').textContent = `Lead: ${item.id} — ${item.name}`;
+      
+      const cleanPhone = (item.phone || '').replace(/[^0-9]/g, '');
+      const body = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div><b>Phone:</b> <a href="tel:${item.phone}">${item.phone}</a></div>
+          <div><b>WhatsApp:</b> <a href="https://wa.me/${cleanPhone}" target="_blank">Open WhatsApp ↗</a></div>
+          <div><b>Email:</b> ${item.email || 'N/A'}</div>
+          <div><b>Enquiry Type:</b> ${item.enquiry_type}</div>
+          <div><b>Course / Role:</b> ${item.interested_course || 'N/A'}</div>
+          <div><b>Preferred Location:</b> ${item.preferred_location || 'N/A'}</div>
+          <div><b>Created:</b> ${new Date(item.created_at).toLocaleString()}</div>
+          <div><b>Page Source:</b> ${item.source_page}</div>
+        </div>
+        <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; margin-bottom:10px;">
+          <b>Message / Query:</b><br>
+          ${item.message || 'No additional message provided.'}
+        </div>
+      `;
+      document.getElementById('modalLeadBody').innerHTML = body;
+      document.getElementById('modalStaffNotes').value = item.notes || '';
+      document.getElementById('modalStatusSelect').value = item.status || 'New';
+      openModal('leadModal');
+    }
+
+    async function saveLeadNotesFromModal() {
+      if (!currentSelectedLead) return;
+      const notes = document.getElementById('modalStaffNotes').value;
+      const status = document.getElementById('modalStatusSelect').value;
+      await window.SoftDB.updateStatus(currentSelectedLead.id, status, notes);
+      closeModal('leadModal');
+      await updateStats();
+      await renderTable();
+    }
+
+    async function deleteLead(id) {
+      if (confirm(`Are you sure you want to delete lead ${id}?`)) {
+        await window.SoftDB.deleteEnquiry(id);
+        await updateStats();
+        await renderTable();
+      }
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function openManualLeadModal() {
+      document.getElementById('manualLeadForm').reset();
+      openModal('manualLeadModal');
+    }
+
+    document.getElementById('manualLeadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+
+      await window.SoftDB.saveEnquiry({
+        name: data.get('name'),
+        phone: data.get('phone'),
+        email: data.get('email'),
+        enquiry_type: data.get('enquiry_type'),
+        interested_course: data.get('course'),
+        preferred_location: data.get('location'),
+        message: data.get('message'),
+        source_page: 'Manual Admin Entry',
+        status: 'New'
+      });
+
+      closeModal('manualLeadModal');
+      await updateStats();
+      await renderTable();
+      alert('New lead added to database!');
+    });
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('typeFilter').value = 'all';
+      document.getElementById('statusFilter').value = 'all';
+      renderTable();
+    }
+
+    // Live search listener
+    document.getElementById('searchInput').addEventListener('input', () => {
+      renderTable();
+    });
+
+    // Listen to real-time events from forms
+    window.addEventListener('soft-db-change', () => {
+      updateStats();
+      renderTable();
+    });
+
+    // Check auth on page load
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
